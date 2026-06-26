@@ -21,6 +21,10 @@
         <url>https://github.com/ligoj/plugin-registry.git</url>
     </scm>
 
+    <properties>
+        <sonar.sources>src/main/java</sonar.sources>
+    </properties>
+
     <profiles>
         <profile>
             <id>github</id>
