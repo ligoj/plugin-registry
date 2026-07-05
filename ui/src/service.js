@@ -11,6 +11,7 @@
  * Kept free of Vue SFC imports so it can be unit-tested without a DOM.
  */
 import { toolPluginId, delegateFeature } from '@ligoj/host'
+import RegistryTypeField from './RegistryTypeField.vue'
 
 /**
  * Derive the sub-plugin id for a registry tool subscription. A registry
@@ -43,6 +44,17 @@ const service = {
   renderDetailsFeatures(subscription) {
     const out = delegateToToolPlugin(subscription, 'renderDetailsFeatures')
     return out.length ? out : null
+  },
+
+  /*
+   * Subscribe-wizard field for the registry artifact `type` SELECT
+   * (service:registry:<tool>:type): a value picker showing each type's icon.
+   * Owned by the parent so all registry tools share one field — the wizard
+   * asks the sub-plugin first (which has no parameterField) then falls back
+   * to us. Any other parameter uses the wizard's default type-based input.
+   */
+  parameterField({ parameter } = {}) {
+    return /^service:registry:[^:]+:type$/.test(parameter?.id || '') ? RegistryTypeField : null
   },
 }
 

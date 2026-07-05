@@ -44,6 +44,15 @@ describe('plugin-registry manifest', () => {
     expect(def.feature('renderDetailsKey', { node: { id: 'service:registry:none:1' }, parameters: {} })).toBeNull()
     expect(def.feature('renderDetailsFeatures', { node: { id: 'service:registry:none:1' }, parameters: {} })).toBeNull()
   })
+
+  it('parameterField provides the icon type-select for any registry :type parameter', () => {
+    const field = def.feature('parameterField', { parameter: { id: 'service:registry:harbor:type', type: 'SELECT' } })
+    expect(field).toBeTruthy()
+    expect(field).toBe(def.feature('parameterField', { parameter: { id: 'service:registry:nexus:type' } }))
+    // Any other parameter (or none) falls back to the wizard's default field.
+    expect(def.feature('parameterField', { parameter: { id: 'service:registry:nexus:registry' } })).toBeNull()
+    expect(def.feature('parameterField', {})).toBeNull()
+  })
 })
 
 describe('plugin-registry -> tool delegation', () => {
