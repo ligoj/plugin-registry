@@ -53,6 +53,23 @@ describe('plugin-registry manifest', () => {
     expect(def.feature('parameterField', { parameter: { id: 'service:registry:nexus:registry' } })).toBeNull()
     expect(def.feature('parameterField', {})).toBeNull()
   })
+
+  it('parameterLayout orders url, user then the secret for any registry node', () => {
+    expect(def.feature('parameterLayout', { nodeId: 'service:registry:nexus' })).toEqual([{
+      parameters: [
+        'service:registry:nexus:url',
+        'service:registry:nexus:user',
+        'service:registry:nexus:password',
+        'service:registry:nexus:secret',
+        'service:registry:nexus:token',
+      ],
+    }])
+    // Ids are derived from the node id, so it works for every tool.
+    expect(def.feature('parameterLayout', { nodeId: 'service:registry:artifactory' })[0].parameters[0])
+      .toBe('service:registry:artifactory:url')
+    // No node id → nothing to order.
+    expect(def.feature('parameterLayout', {})).toEqual([])
+  })
 })
 
 describe('plugin-registry -> tool delegation', () => {

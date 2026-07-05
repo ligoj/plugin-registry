@@ -56,6 +56,21 @@ const service = {
   parameterField({ parameter } = {}) {
     return /^service:registry:[^:]+:type$/.test(parameter?.id || '') ? RegistryTypeField : null
   },
+
+  /*
+   * Order the connection parameters common to every registry tool: url,
+   * then user, then the secret (whichever of password / secret / token the
+   * tool defines) — ahead of the default name-ascending order. Owned by the
+   * parent so all registry tools share it; ids are derived from the node id
+   * (`service:registry:<tool>`), and any parameter absent from the current
+   * form is skipped. A tool plugin that needs a different layout (e.g.
+   * registry-nexus' type-before-registry on subscription) returns its own
+   * and is consulted first.
+   */
+  parameterLayout({ nodeId } = {}) {
+    if (!nodeId) return []
+    return [{ parameters: [`${nodeId}:url`, `${nodeId}:user`, `${nodeId}:password`, `${nodeId}:secret`, `${nodeId}:token`] }]
+  },
 }
 
 export default service
