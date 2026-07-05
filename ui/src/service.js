@@ -10,8 +10,11 @@
  *
  * Kept free of Vue SFC imports so it can be unit-tested without a DOM.
  */
+import { h } from 'vue'
 import { toolPluginId, delegateFeature } from '@ligoj/host'
 import RegistryTypeField from './RegistryTypeField.vue'
+import RegistryTypeIcon from './RegistryTypeIcon.vue'
+import RegistryRepositoryField from './RegistryRepositoryField.vue'
 
 /**
  * Derive the sub-plugin id for a registry tool subscription. A registry
@@ -47,14 +50,18 @@ const service = {
   },
 
   /*
-   * Subscribe-wizard field for the registry artifact `type` SELECT
-   * (service:registry:<tool>:type): a value picker showing each type's icon.
-   * Owned by the parent so all registry tools share one field — the wizard
-   * asks the sub-plugin first (which has no parameterField) then falls back
-   * to us. Any other parameter uses the wizard's default type-based input.
+   * Subscribe-wizard fields shared by every registry tool (the wizard asks the
+   * sub-plugin first — which has none — then falls back to us):
+   *   - `:type`     → a value picker showing each artifact type's icon;
+   *   - `:registry` → an autocomplete searching the remote instance's
+   *                   repositories/registries (RegistryRepositoryField).
+   * Any other parameter uses the wizard's default type-based input.
    */
   parameterField({ parameter } = {}) {
-    return /^service:registry:[^:]+:type$/.test(parameter?.id || '') ? RegistryTypeField : null
+    const id = parameter?.id || ''
+    if (/^service:registry:[^:]+:type$/.test(id)) return RegistryTypeField
+    if (/^service:registry:[^:]+:registry$/.test(id)) return RegistryRepositoryField
+    return null
   },
 
   /*
@@ -70,6 +77,16 @@ const service = {
   parameterLayout({ nodeId } = {}) {
     if (!nodeId) return []
     return [{ parameters: [`${nodeId}:url`, `${nodeId}:user`, `${nodeId}:password`, `${nodeId}:secret`, `${nodeId}:token`] }]
+  },
+
+  /*
+   * Shared artifact-type icon, as a VNode, for the tool plugins' render*
+   * chips. A tool cannot import our SFC directly (no cross-plugin imports), so
+   * it asks us via callFeature('registry', 'renderTypeIcon', { type, ...attrs }).
+   * `opts` is `{ type, ...iconAttrs }` — size / start / class forward to <v-icon>.
+   */
+  renderTypeIcon(opts = {}) {
+    return h(RegistryTypeIcon, opts)
   },
 }
 

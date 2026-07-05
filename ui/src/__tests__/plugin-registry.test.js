@@ -6,6 +6,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { pluginRegistry, useI18nStore } from '@ligoj/host'
 import def, { service } from '../index.js'
+import { typeIcon, typeLabel, typeIconSrc, TYPE_ICONS } from '../registryTypes.js'
 
 beforeEach(() => { setActivePinia(createPinia()) })
 
@@ -50,8 +51,16 @@ describe('plugin-registry manifest', () => {
     expect(field).toBeTruthy()
     expect(field).toBe(def.feature('parameterField', { parameter: { id: 'service:registry:nexus:type' } }))
     // Any other parameter (or none) falls back to the wizard's default field.
-    expect(def.feature('parameterField', { parameter: { id: 'service:registry:nexus:registry' } })).toBeNull()
+    expect(def.feature('parameterField', { parameter: { id: 'service:registry:nexus:base-dn' } })).toBeNull()
     expect(def.feature('parameterField', {})).toBeNull()
+  })
+
+  it('parameterField provides the repository autocomplete for any registry :registry parameter', () => {
+    const field = def.feature('parameterField', { parameter: { id: 'service:registry:nexus:registry' } })
+    expect(field).toBeTruthy()
+    // Shared across tools, and distinct from the type field.
+    expect(field).toBe(def.feature('parameterField', { parameter: { id: 'service:registry:harbor:registry' } }))
+    expect(field).not.toBe(def.feature('parameterField', { parameter: { id: 'service:registry:nexus:type' } }))
   })
 
   it('parameterLayout orders url, user then the secret for any registry node', () => {
@@ -69,6 +78,56 @@ describe('plugin-registry manifest', () => {
       .toBe('service:registry:artifactory:url')
     // No node id → nothing to order.
     expect(def.feature('parameterLayout', {})).toEqual([])
+  })
+})
+
+describe('plugin-registry shared type icon', () => {
+  it('typeIcon maps each known artifact type, case-insensitively', () => {
+    expect(typeIcon('docker')).toBe('mdi-docker')
+    expect(typeIcon('maven')).toBe('mdi-language-java')
+    expect(typeIcon('npm')).toBe('mdi-npm')
+    expect(typeIcon('NuGet')).toBe(TYPE_ICONS.nuget)  // case-insensitive
+    expect(typeIcon('python')).toBe('mdi-language-python')
+  })
+
+  it('typeIcon falls back to a generic package icon for unknown/empty types', () => {
+    expect(typeIcon('rust')).toBe('mdi-package-variant')
+    expect(typeIcon('')).toBe('mdi-package-variant')
+    expect(typeIcon(null)).toBe('mdi-package-variant')
+    expect(typeIcon(undefined)).toBe('mdi-package-variant')
+  })
+
+  it('typeLabel gives each known type a proper label, case-insensitively', () => {
+    expect(typeLabel('docker')).toBe('Docker')
+    expect(typeLabel('maven')).toBe('Maven')
+    expect(typeLabel('npm')).toBe('NPM')
+    expect(typeLabel('NuGet')).toBe('NuGet')
+    expect(typeLabel('python')).toBe('Python')
+  })
+
+  it('typeLabel capitalises unknown types and keeps empty empty', () => {
+    expect(typeLabel('rust')).toBe('Rust')
+    expect(typeLabel('')).toBe('')
+    expect(typeLabel(null)).toBe('')
+    expect(typeLabel(undefined)).toBe('')
+  })
+
+  it('typeIconSrc points at each type brand SVG, null when there is none', () => {
+    expect(typeIconSrc('docker')).toMatch(/main\/service\/registry\/img\/docker\.svg$/)
+    expect(typeIconSrc('NuGet')).toMatch(/\/nuget\.svg$/) // case-insensitive
+    expect(typeIconSrc('rust')).toBeNull()
+    expect(typeIconSrc('')).toBeNull()
+    expect(typeIconSrc(null)).toBeNull()
+  })
+
+  it('renderTypeIcon returns the shared icon component with the type + forwarded attrs', () => {
+    const vnode = def.feature('renderTypeIcon', { type: 'maven', size: 'small', start: true })
+    expect(vnode.__v_isVNode).toBe(true)
+    expect(vnode.props.type).toBe('maven')
+    expect(vnode.props.size).toBe('small')
+    expect(vnode.props.start).toBe(true)
+    // Default (no opts) is still a valid vnode.
+    expect(def.feature('renderTypeIcon').__v_isVNode).toBe(true)
   })
 })
 

@@ -1,19 +1,21 @@
 <!--
   RegistryTypeField — subscribe-wizard input for the registry artifact `type`
-  SELECT parameter (service:registry:<tool>:type). Renders each allowed value
-  (docker / maven / nuget / npm / python) prefixed with its icon — both in the
-  closed selection and in the dropdown — so the wizard shows the same icon
-  vocabulary as the subscription row's registry chip.
+  SELECT parameter (service:registry:<tool>:type). Each allowed value is shown
+  with its icon and a properly-cased label (Docker, Maven, NuGet, NPM, Python),
+  in both the closed selection and the dropdown — the same icon vocabulary as
+  the subscription row's registry chip.
 
   Provided by the parent `plugin-registry` via `parameterField`, so every
-  registry tool (Harbor, Nexus, Artifactory) shares this one field. It binds
-  the value exactly like the wizard's default <v-select> (the option string),
-  only adding the icons.
+  registry tool (Harbor, Nexus, Artifactory) shares this one field. The form
+  binds the option VALUE ("docker"); a persisted SELECT arriving as its option
+  INDEX ("0") is normalised back to the value so the picker still matches.
 -->
 <template>
   <v-select
-    :model-value="modelValue"
+    :model-value="selectedValue"
     :items="items"
+    item-title="title"
+    item-value="value"
     :label="label"
     :rules="rules"
     variant="outlined"
@@ -22,12 +24,12 @@
     @update:model-value="$emit('update:modelValue', $event)"
   >
     <template #selection="{ item }">
-      <v-icon size="18" class="mr-2">{{ iconFor(item.value) }}</v-icon>{{ item.title }}
+      <RegistryTypeIcon :type="item.value" size="18" class="mr-2" />{{ item.title }}
     </template>
     <template #item="{ item, props: itemProps }">
-      <v-list-item v-bind="itemProps">
+      <v-list-item v-bind="itemProps" :title="item.title">
         <template #prepend>
-          <v-icon>{{ iconFor(item.value) }}</v-icon>
+          <RegistryTypeIcon :type="item.value" />
         </template>
       </v-list-item>
     </template>
@@ -37,6 +39,8 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18nStore } from '@ligoj/host'
+import RegistryTypeIcon from './RegistryTypeIcon.vue'
+import { typeLabel } from './registryTypes.js'
 
 const props = defineProps({
   modelValue: { type: [String, Number], default: null },
@@ -44,21 +48,24 @@ const props = defineProps({
 })
 defineEmits(['update:modelValue'])
 
-// Artifact-type → icon. Same mapping as the tools' registry chip.
-const TYPE_ICONS = {
-  docker: 'mdi-docker',
-  maven: 'mdi-language-java',
-  nuget: 'mdi-nuget',
-  npm: 'mdi-npm',
-  python: 'mdi-language-python',
-}
-
-function iconFor(value) {
-  return TYPE_ICONS[String(value ?? '').toLowerCase()] || 'mdi-package-variant'
-}
-
 const i18n = useI18nStore()
-const items = computed(() => props.parameter?.values || [])
+
+// One option per allowed artifact type: bound by its value string, shown with a
+// proper label + icon.
+const values = computed(() => props.parameter?.values || [])
+const items = computed(() => values.value.map((v) => ({ title: typeLabel(v), value: v })))
+
+// The value may arrive as the option value ("docker") or, from persisted data,
+// as its option INDEX ("0"); normalise to the value so an option matches (and
+// its label + icon show).
+const selectedValue = computed(() => {
+  const mv = props.modelValue
+  if (mv == null || mv === '') return null
+  const i = Number(mv)
+  if (Number.isInteger(i) && String(i) === String(mv) && i >= 0 && i < values.value.length) return values.value[i]
+  return mv
+})
+
 const label = computed(() => {
   const id = props.parameter?.id
   const translated = id ? i18n.t(id) : ''
