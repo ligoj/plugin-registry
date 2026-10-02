@@ -103,6 +103,13 @@ describe('plugin-registry shared type icon', () => {
     expect(typeLabel('npm')).toBe('NPM')
     expect(typeLabel('NuGet')).toBe('NuGet')
     expect(typeLabel('python')).toBe('Python')
+    // Nexus hosted formats beyond the original five
+    expect(typeLabel('yum')).toBe('YUM')
+    expect(typeLabel('apt')).toBe('APT')
+    expect(typeLabel('rubygems')).toBe('RubyGems')
+    expect(typeLabel('gitlfs')).toBe('Git LFS')
+    expect(typeIcon('apt')).toBe('mdi-debian')
+    expect(typeIcon('helm')).toBe('mdi-ship-wheel')
   })
 
   it('typeLabel capitalises unknown types and keeps empty empty', () => {

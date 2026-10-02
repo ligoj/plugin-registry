@@ -30,6 +30,13 @@ export const TYPE_ICONS = {
   nuget: 'mdi-nuget',
   npm: 'mdi-npm',
   python: 'mdi-language-python',
+  yum: 'mdi-fedora',
+  apt: 'mdi-debian',
+  raw: 'mdi-file-outline',
+  helm: 'mdi-ship-wheel',
+  rubygems: 'mdi-language-ruby',
+  r: 'mdi-language-r',
+  gitlfs: 'mdi-git',
 }
 
 /** Display label for an artifact type — proper casing that a plain
@@ -40,6 +47,13 @@ export const TYPE_LABELS = {
   nuget: 'NuGet',
   npm: 'NPM',
   python: 'Python',
+  yum: 'YUM',
+  apt: 'APT',
+  raw: 'Raw',
+  helm: 'Helm',
+  rubygems: 'RubyGems',
+  r: 'R',
+  gitlfs: 'Git LFS',
 }
 
 /** mdi icon name for an artifact type (case-insensitive); package fallback. */
