@@ -11,7 +11,7 @@
   INDEX ("0") is normalised back to the value so the picker still matches.
 -->
 <template>
-  <v-select
+  <LigojSelect
     :model-value="selectedValue"
     :items="items"
     item-title="title"
@@ -33,12 +33,12 @@
         </template>
       </v-list-item>
     </template>
-  </v-select>
+  </LigojSelect>
 </template>
 
 <script setup>
 import { computed } from 'vue'
-import { useI18nStore } from '@ligoj/host'
+import { LigojSelect, useI18nStore } from '@ligoj/host'
 import RegistryTypeIcon from './RegistryTypeIcon.vue'
 import { typeLabel } from './registryTypes.js'
 

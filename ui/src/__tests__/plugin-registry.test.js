@@ -3,6 +3,7 @@
  * shape, i18n merge, and parent->tool delegation via subPluginIdFor.
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { mount } from '@vue/test-utils'
 import { setActivePinia, createPinia } from 'pinia'
 import { pluginRegistry, useI18nStore } from '@ligoj/host'
 import def, { service } from '../index.js'
@@ -53,6 +54,16 @@ describe('plugin-registry manifest', () => {
     // Any other parameter (or none) falls back to the wizard's default field.
     expect(def.feature('parameterField', { parameter: { id: 'service:registry:nexus:base-dn' } })).toBeNull()
     expect(def.feature('parameterField', {})).toBeNull()
+  })
+
+  it('the type select suppresses the browser suggestions, like every subscription input', () => {
+    const field = def.feature('parameterField', { parameter: { id: 'service:registry:harbor:type', type: 'SELECT' } })
+    const w = mount(field, {
+      props: { modelValue: 'docker', parameter: { id: 'service:registry:harbor:type', type: 'SELECT', values: ['docker', 'maven'] } },
+      global: { stubs: { LigojSelect: { name: 'LigojSelect', props: ['items'], template: '<select />' }, 'v-select': { name: 'VSelect', template: '<select />' } } },
+    })
+    expect(w.findComponent({ name: 'LigojSelect' }).exists()).toBe(true)
+    expect(w.findComponent({ name: 'VSelect' }).exists()).toBe(false)
   })
 
   it('parameterField provides the repository autocomplete for any registry :registry parameter', () => {
